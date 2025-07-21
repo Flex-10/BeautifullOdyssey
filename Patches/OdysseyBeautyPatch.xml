@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+
+    <!-- GravEngine: 20 (add Beauty value to override inherited -10) -->
+    <Operation Class="PatchOperationAdd">
+        <xpath>/Defs/ThingDef[defName="GravEngine"]/statBases</xpath>
+        <value>
+            <Beauty>20</Beauty>
+        </value>
+    </Operation>
+
+    <!-- GravFieldExtender: 10 (add Beauty value to override inherited -10) -->
+    <Operation Class="PatchOperationAdd">
+        <xpath>/Defs/ThingDef[defName="GravFieldExtender"]/statBases</xpath>
+        <value>
+            <Beauty>10</Beauty>
+        </value>
+    </Operation>
+
+    <!-- GravcorePowerCell: 5 (replace existing Beauty value) -->
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="GravcorePowerCell"]/statBases/Beauty</xpath>
+        <value>
+            <Beauty>5</Beauty>
+        </value>
+    </Operation>
+
+    <!-- GravshipShieldGenerator: 10 (add Beauty value to override inherited -10) -->
+    <Operation Class="PatchOperationAdd">
+        <xpath>/Defs/ThingDef[defName="GravshipShieldGenerator"]/statBases</xpath>
+        <value>
+            <Beauty>10</Beauty>
+        </value>
+    </Operation>
+
+    <!-- PilotSubpersonaCore: 10 (add Beauty value to override inherited -10) -->
+    <Operation Class="PatchOperationAdd">
+        <xpath>/Defs/ThingDef[defName="PilotSubpersonaCore"]/statBases</xpath>
+        <value>
+            <Beauty>10</Beauty>
+        </value>
+    </Operation>
+
+    <!-- SignalJammer: 10 (replace existing Beauty value) -->
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="SignalJammer"]/statBases/Beauty</xpath>
+        <value>
+            <Beauty>10</Beauty>
+        </value>
+    </Operation>
+
+    <!-- GravAnchor: 10 (replace existing Beauty value) -->
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="GravAnchor"]/statBases/Beauty</xpath>
+        <value>
+            <Beauty>10</Beauty>
+        </value>
+    </Operation>
+
+</Patch>
