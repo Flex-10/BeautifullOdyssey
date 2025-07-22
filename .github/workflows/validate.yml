@@ -1,0 +1,90 @@
+name: Validate Mod
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-xml:
+    runs-on: ubuntu-latest
+    name: Validate XML Files
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate XML syntax
+        run: |
+          # Check if XML files are well-formed
+          find . -name "*.xml" -exec xmllint --noout {} \;
+
+      - name: Check for required files
+        run: |
+          # Ensure core mod files exist
+          test -f "About/About.xml" || exit 1
+          test -f "Patches/OdysseyBeautyPatch.xml" || exit 1
+          echo "✓ All required files present"
+
+      - name: Validate About.xml structure
+        run: |
+          # Check if About.xml has required elements
+          xmllint --xpath "//ModMetaData/name" About/About.xml > /dev/null || exit 1
+          xmllint --xpath "//ModMetaData/author" About/About.xml > /dev/null || exit 1
+          xmllint --xpath "//ModMetaData/packageId" About/About.xml > /dev/null || exit 1
+          echo "✓ About.xml structure valid"
+
+      - name: Validate patch operations
+        run: |
+          # Check if patch file has proper structure
+          xmllint --xpath "//Patch/Operation" Patches/OdysseyBeautyPatch.xml > /dev/null || exit 1
+          echo "✓ Patch operations structure valid"
+
+  validate-beauty-values:
+    runs-on: ubuntu-latest
+    name: Validate Beauty Values
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check beauty value consistency
+        run: |
+          # Extract beauty values from patch file and validate they're positive
+          beauty_values=$(xmllint --xpath "//Beauty/text()" Patches/OdysseyBeautyPatch.xml)
+          echo "Found beauty values: $beauty_values"
+
+          # Check that all values are positive integers
+          for value in $beauty_values; do
+            if ! [[ "$value" =~ ^[1-9][0-9]*$ ]]; then
+              echo "❌ Invalid beauty value: $value (must be positive integer)"
+              exit 1
+            fi
+          done
+          echo "✓ All beauty values are positive integers"
+
+  validate-readme:
+    runs-on: ubuntu-latest
+    name: Validate Documentation
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check README completeness
+        run: |
+          # Ensure README has required sections
+          grep -q "# BeautifullOdyssey" README.md || exit 1
+          grep -q "## Features" README.md || exit 1
+          grep -q "| Building" README.md || exit 1
+          echo "✓ README has required sections"
+
+      - name: Validate beauty value table
+        run: |
+          # Count beauty value entries in README table
+          building_count=$(grep -c "^\| \*\*" README.md)
+          echo "Found $building_count buildings in README table"
+
+          if [ "$building_count" -lt 6 ]; then
+            echo "❌ README table seems incomplete (found $building_count buildings, expected at least 6)"
+            exit 1
+          fi
+          echo "✓ README beauty value table appears complete"
