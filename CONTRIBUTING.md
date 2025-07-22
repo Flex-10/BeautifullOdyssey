@@ -54,7 +54,6 @@ When fixing bugs:
 - Use consistent indentation (2 spaces)
 - Include comments for each building patch
 - Follow existing naming conventions
-- Validate XML syntax before submitting
 
 Example patch operation:
 
@@ -83,16 +82,15 @@ Current value ranges:
 
 ## Testing Guidelines
 
-### Required Testing
+### Basic Testing
 
 Before submitting any changes:
 
 1. **Load test** - Mod loads without errors
 2. **Value verification** - Beauty values appear correctly in building info
 3. **Save compatibility** - Existing saves still work
-4. **Basic mod compatibility** - Test with Harmony and common mods
 
-### Recommended Testing
+### Extended Testing
 
 For more thorough testing:
 

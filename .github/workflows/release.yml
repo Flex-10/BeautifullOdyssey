@@ -1,0 +1,170 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., v1.0.0)"
+        required: true
+        type: string
+      release_type:
+        description: "Type of release"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: "Mark as pre-release?"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    name: Create GitHub Release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set version variables
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+          echo "Release version: $VERSION"
+
+      - name: Update About.xml version
+        run: |
+          VERSION_NUMBER="${{ steps.version.outputs.version_number }}"
+          echo "📝 Updating About.xml with version $VERSION_NUMBER"
+
+          # Update or add version in About.xml if it doesn't exist
+          if grep -q "<version>" About/About.xml; then
+            sed -i "s|<version>.*</version>|<version>$VERSION_NUMBER</version>|" About/About.xml
+          else
+            # Add version after packageId
+            sed -i "/<packageId>Felix.BeautifullOdyssey<\/packageId>/a\\    <version>$VERSION_NUMBER</version>" About/About.xml
+          fi
+
+          echo "✓ About.xml updated"
+
+      - name: Create mod package
+        run: |
+          echo "📦 Creating mod package..."
+
+          # Create release directory
+          mkdir -p release/BeautifullOdyssey
+
+          # Copy mod files
+          cp -r About/ release/BeautifullOdyssey/
+          cp -r Patches/ release/BeautifullOdyssey/
+          cp README.md release/BeautifullOdyssey/
+          cp LICENSE release/BeautifullOdyssey/ 2>/dev/null || echo "No LICENSE file found"
+
+          # Create zip file
+          cd release
+          zip -r BeautifullOdyssey-${{ steps.version.outputs.version }}.zip BeautifullOdyssey/
+          cd ..
+
+          echo "✓ Mod package created: BeautifullOdyssey-${{ steps.version.outputs.version }}.zip"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "📋 Generating changelog..."
+
+          # Get the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -n "$PREV_TAG" ]; then
+            echo "📅 Changes since $PREV_TAG:"
+            CHANGELOG=$(git log --pretty=format:"- %s" $PREV_TAG..HEAD)
+          else
+            echo "📅 Initial release"
+            CHANGELOG="Initial release of BeautifullOdyssey mod"
+          fi
+
+          # Create changelog file
+          cat > CHANGELOG.md << EOF
+          # BeautifullOdyssey ${{ steps.version.outputs.version }}
+
+          ## What's Changed
+
+          $CHANGELOG
+
+          ## Features
+
+          This mod transforms ugly Odyssey DLC buildings into beautiful ones:
+
+          | Building | Old Beauty | New Beauty |
+          |----------|------------|------------|
+          | **GravEngine** | -10 | +10 |
+          | **GravshipShieldGenerator** | -10 | +10 |
+          | **GravFieldExtender** | -10 | +10 |
+          | **SignalJammer** | -10 | +10 |
+          | **PilotSubpersonaCore** | -10 | +10 |
+          | **GravAnchor** | -10 | +10 |
+          | **GravcorePowerCell** | -5 | +5 |
+
+          ## Installation
+
+          1. Download the \`BeautifullOdyssey-${{ steps.version.outputs.version }}.zip\` file
+          2. Extract to your RimWorld/Mods folder
+          3. Enable in mod manager (requires Odyssey DLC)
+
+          ## Compatibility
+
+          - **Requires**: RimWorld 1.6 + Odyssey DLC
+          - **Compatible with**: Most other mods
+          - **Load Order**: After Odyssey DLC
+          EOF
+
+          echo "changelog_path=CHANGELOG.md" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: BeautifullOdyssey ${{ steps.version.outputs.version }}
+          body_path: CHANGELOG.md
+          files: |
+            release/BeautifullOdyssey-${{ steps.version.outputs.version }}.zip
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit version update
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add About/About.xml
+          git commit -m "chore: bump version to ${{ steps.version.outputs.version }}" || exit 0
+          git push origin main
+
+  notify-success:
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: success()
+
+    steps:
+      - name: Success notification
+        run: |
+          echo "🎉 Release created successfully!"
+          echo "📦 Download: https://github.com/${{ github.repository }}/releases/latest"
