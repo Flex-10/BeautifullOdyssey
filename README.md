@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-BeautifullOdyssey is a RimWorld mod that enhances the visual appeal of buildings from the Odyssey DLC by changing negative beauty values with positive ones.
+BeautifullOdyssey is a RimWorld mod that enhances the visual "level" of buildings from the Odyssey DLC by changing negative beauty values with positive ones.
 
 ## Features
 
