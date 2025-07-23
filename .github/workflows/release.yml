@@ -1,0 +1,34 @@
+name: Build Release
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create mod package
+        run: |
+          mkdir BeautifullOdyssey
+          cp -r About/ Patches/ README.md BeautifullOdyssey/
+
+      - name: Create release archive
+        run: |
+          zip -r BeautifullOdyssey-${{ github.event.release.tag_name || 'latest' }}.zip BeautifullOdyssey/
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: BeautifullOdyssey-${{ github.event.release.tag_name || 'latest' }}.zip
+          asset_name: BeautifullOdyssey-${{ github.event.release.tag_name || 'latest' }}.zip
+          asset_content_type: application/zip
