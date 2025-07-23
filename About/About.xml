@@ -5,7 +5,10 @@
     <url>https://github.com/Flex-10/BeautifullOdyssey</url>
     <packageId>Flex10.BeautifullOdyssey</packageId>
     <modVersion>1.0.0</modVersion>
-    <description>Make some of the Odyssey DLC buildings beautiful.</description>
+    <description>Make some of the Odyssey DLC buildings beautiful.
+
+Why? Because I myself would like buildings like the GravEngine in my house. I don't think it should have a negative beauty value.
+    </description>
     <supportedVersions>
         <li>1.6</li>
     </supportedVersions>
